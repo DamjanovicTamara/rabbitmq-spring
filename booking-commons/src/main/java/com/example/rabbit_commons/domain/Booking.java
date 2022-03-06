@@ -17,12 +17,11 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-@NoArgsConstructor
+
 public class Booking extends BaseEntity {
-/*
     protected Booking() {
         super();
-    }*/
+    }
     private String passengerName;
 
     private String passengerContactNumber;

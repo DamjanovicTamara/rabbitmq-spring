@@ -12,18 +12,17 @@ import javax.persistence.ManyToOne;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-@NoArgsConstructor
 public class TripWaypoint extends BaseEntity {
-/*
     protected TripWaypoint() {
         super();
-    }*/
+    }
 
     private String locality;
 
     private String longitude;
 
     private String latitude;
+
     @ManyToOne(cascade = CascadeType.ALL)
     private Booking booking;
 
