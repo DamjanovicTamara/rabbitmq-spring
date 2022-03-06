@@ -2,7 +2,9 @@ package com.example.rabbit_booking_producer.service;
 
 
 import com.example.rabbit_commons.domain.Booking;
+import com.example.rabbit_commons.domain.TripWaypoint;
 import com.example.rabbit_commons.repository.BookingRepository;
+import com.example.rabbit_commons.repository.TripWaypointRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.amqp.core.Queue;
@@ -21,6 +23,8 @@ public class RabbitMQSender {
 
     private BookingRepository bookingRepository;
 
+    private TripWaypointRepository tripWaypointRepository;
+
     @Autowired
     @Qualifier("messageQueue")
     private Queue queue;
@@ -38,9 +42,10 @@ public class RabbitMQSender {
     private Queue bookingDeleteQueue;
 
     @Autowired
-    public RabbitMQSender(RabbitTemplate rabbitTemplate, BookingRepository bookingRepository) {
+    public RabbitMQSender(RabbitTemplate rabbitTemplate, BookingRepository bookingRepository, TripWaypointRepository tripWaypointRepository) {
         this.rabbitTemplate = rabbitTemplate;
-        this.bookingRepository= bookingRepository;
+        this.bookingRepository = bookingRepository;
+        this.tripWaypointRepository = tripWaypointRepository;
     }
 
     private static Logger logger = LogManager.getLogger(RabbitMQSender.class.toString());
@@ -53,24 +58,28 @@ public class RabbitMQSender {
 
     public void sendBooking(Booking booking) {
         bookingRepository.save(booking);
+        booking.getTripWaypointList().forEach(t -> {
+            t.setBooking(booking);
+            tripWaypointRepository.save(t);
+        });
         rabbitTemplate.convertAndSend(bookingAddQueue.getName(), booking);
         logger.info("Sending id of booking to the queue " + booking);
     }
 
     public void sendEditBookingID(Long id) {
         Booking booking = bookingRepository.findById(id).
-                orElseThrow(()->new EntityNotFoundException(String.format("Entity with provided id was not found in database " +id)));
+                orElseThrow(() -> new EntityNotFoundException(("Entity with provided id was not found in database " + id)));
         booking.setLastModifiedOn(LocalDateTime.now());
         bookingRepository.save(booking);
         rabbitTemplate.convertAndSend(bookingEditQueue.getName(), booking);
-        logger.info("Sending id of booking to be edited to the queue with id: " + id+"details:"+booking);
+        logger.info("Sending id of booking to be edited to the queue with id: " + id + "details:" + booking);
     }
 
     public void sendDeleteBookingID(Long id) {
         Booking booking = bookingRepository.findById(id).
-                orElseThrow(()->new EntityNotFoundException(String.format("Entity with provided id was not found in database "+ id)));
+                orElseThrow(() -> new EntityNotFoundException("Entity with provided id was not found in database " + id));
         bookingRepository.delete(booking);
-        rabbitTemplate.convertAndSend(bookingDeleteQueue.getName(),booking);
-        logger.info("Sending id of booking to be deleted to the queue with id: " + id+"details: "+booking);
+        rabbitTemplate.convertAndSend(bookingDeleteQueue.getName(), booking);
+        logger.info("Sending id of booking to be deleted to the queue with id: " + id + "details: " + booking);
     }
 }
