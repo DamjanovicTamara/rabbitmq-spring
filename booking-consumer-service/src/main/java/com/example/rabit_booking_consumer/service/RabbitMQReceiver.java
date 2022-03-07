@@ -34,18 +34,18 @@ public class RabbitMQReceiver implements RabbitListenerConfigurer {
 
     @RabbitListener(queues = "bookingAdd.queue")
     public void receivedBooking(Booking booking) {
-        logger.info("Booking Details Received is.. " + booking);
+        logger.info("message is received with booking details .. " + booking);
     }
 
     @RabbitListener(queues = "bookingEdit.queue")
     public void receivedBookingToEdit(Booking booking) {
-        logger.info("Booking to edit with id:" + booking.getId() + "was received,details: " + booking);
+        logger.info("Booking to edit with id:" + booking.getId() + " was received,details: " + booking);
 
     }
 
     @RabbitListener(queues = "bookingDelete.queue")
     public void receivedBookingToDelete(Booking booking) {
-        logger.info("Booking to delete with id:" + booking.getId() + "was received, details: " + booking);
+        logger.info("Booking to delete with id:" + booking.getId() + " was received, details: " + booking);
 
     }
 }
